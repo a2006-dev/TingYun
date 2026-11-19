@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  停云 · 颜色
+  与 assets 里的 HTML 共用同一套色值（大纲 3.4：共用一套 CSS 变量，视觉天然统一）。
+-->
+<resources>
+    <!-- 页面底色。三处必须一致：HTML 的 var c3、主题的 windowBackground、WebView 的 setBackgroundColor -->
+    <color name="ty_bg">#FF070A0F</color>
+    <color name="ty_bg_mid">#FF121A26</color>
+    <color name="ty_ink">#FFEEF3FA</color>
+    <color name="ty_dim">#75DBE6F5</color>
+    <color name="ty_hair">#16C8DCF5</color>
+
+    <!-- 启动预览用：与页面底色相同，消除闪白（10.1） -->
+    <color name="ty_splash">#FF070A0F</color>
+</resources>

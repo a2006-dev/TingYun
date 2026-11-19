@@ -1,0 +1,2022 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#070a0f">
+<link rel="stylesheet" href="./fonts/lxgw-wenkai.css">
+<title>停云</title>
+<style>
+
+:root{
+  
+  --c1:#080b11; --c2:#121a26; --c3:#070a0f;
+  --glow:rgba(140,175,220,.10);
+  --ink:#eef3fa;
+  --dim:rgba(219,230,245,.46);
+  --dimmer:rgba(214,226,242,.22);
+  --hair:rgba(200,220,245,.085);
+  --glass:rgba(18,24,34,.34);
+  --ease:cubic-bezier(.23,1,.32,1);
+
+  --s1:8px; --s2:12px; --s3:16px; --s4:24px; --s5:32px; --s6:48px;
+
+  --sat:0px; --sab:0px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+html,body{
+  height:100%;
+  background:var(--c3);
+  color:var(--ink);
+  font-family:'TingYun','LXGW WenKai',-apple-system,'PingFang SC','HarmonyOS Sans SC',
+              'Source Han Sans SC','Noto Sans CJK SC',sans-serif;
+  overflow:hidden;
+  
+  -webkit-user-select:none;user-select:none;
+  -webkit-touch-callout:none;
+  text-rendering:optimizeLegibility;
+}
+
+button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+.screen{
+  position:fixed; inset:0;
+  display:flex; flex-direction:column;
+  opacity:0; visibility:hidden;
+  transition:opacity 250ms var(--ease), visibility 250ms;
+}
+.screen.on{opacity:1;visibility:visible}
+
+.screen.slow{transition:opacity 1500ms var(--ease), visibility 1500ms}
+
+html.no-anim *,html.no-anim *::before,html.no-anim *::after{
+  transition-duration:1ms !important;
+  animation-duration:1ms !important;
+  animation-iteration-count:1 !important;
+}
+
+.pad{
+  padding:
+    calc(var(--sat) + var(--s3))
+    calc(env(safe-area-inset-right,0px) + var(--s4))
+    calc(var(--sab) + var(--s3))
+    calc(env(safe-area-inset-left,0px) + var(--s4));
+}
+
+#home{
+  background:
+    radial-gradient(120% 80% at 50% -10%, var(--c2) 0%, transparent 60%),
+    radial-gradient(90% 60% at 110% 110%, var(--glow) 0%, transparent 55%),
+    var(--c3);
+}
+
+.top{
+  flex:0 0 auto;
+  display:flex; align-items:center; justify-content:space-between;
+  min-height:48px;
+}
+.top h1{
+  font-size:20px; font-weight:600; letter-spacing:.18em; line-height:1.2;
+}
+
+.ibtn{
+  width:48px;height:48px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--dim);
+  transition:transform 180ms var(--ease), color 180ms var(--ease);
+}
+.ibtn:active{transform:scale(.95);color:var(--ink)}
+.ibtn svg{
+  width:24px;height:24px;
+  stroke:currentColor;stroke-width:1.5;fill:none;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+
+.primary{
+  flex:0 0 auto;
+  margin-top:var(--s5);
+  display:flex; align-items:center; gap:var(--s3);
+  width:100%;
+  padding:var(--s4);
+  background:var(--glass);
+  border-radius:8px;              
+  border:1px solid var(--hair);   
+  text-align:left;
+  transition:transform 200ms var(--ease), background 200ms var(--ease);
+}
+.primary:active{transform:scale(.98);background:rgba(30,40,55,.46)}
+.primary .pi{
+  flex:0 0 auto;width:48px;height:48px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+  border:1px solid var(--hair);
+}
+.primary .pi svg{width:20px;height:20px;fill:currentColor;stroke:none;margin-left:2px}
+.primary .pt{min-width:0}
+.primary .pt b{display:block;font-size:17px;font-weight:600;line-height:1.3}
+.primary .pt span{
+  display:block;margin-top:4px;
+  font-size:13px;font-weight:400;color:var(--dim);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+.sect{
+  flex:0 0 auto;
+  margin-top:var(--s5);
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:13px;color:var(--dim);
+  padding-bottom:var(--s1);
+}
+
+#listWrap{
+  display:none;
+  flex:1 1 auto;
+  min-height:0;
+  flex-direction:column;
+}
+
+.list{
+  flex:1 1 auto;
+  overflow-y:auto;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  margin:0 -4px;
+  padding:0 4px;
+}
+.row{
+  display:flex;align-items:center;gap:var(--s3);
+  height:64px;                            
+  width:100%;
+  border-bottom:1px solid var(--hair);    
+  text-align:left;
+  transition:background 180ms var(--ease);
+}
+.row:active{background:rgba(200,220,245,.04)}
+
+.row.on{background:rgba(200,220,245,.045)}
+.row.on::before{
+  content:'';position:absolute;left:0;top:50%;
+  width:2px;height:22px;margin-top:-11px;
+  background:currentColor;opacity:.5;border-radius:2px;
+}
+.row{position:relative}
+.row.on .tx b{font-weight:500}
+.row .cover{
+  flex:0 0 auto;width:48px;height:48px;   
+  border-radius:2px;                       
+  background:var(--c2);
+  object-fit:cover;display:block;
+  border:1px solid var(--hair);
+}
+.row .tx{min-width:0;flex:1 1 auto}
+.row .tx b{
+  display:block;font-size:15px;font-weight:400;line-height:1.3;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.row .tx span{
+  display:block;margin-top:3px;font-size:12px;color:var(--dim);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+.row .tx b .lyrTag{
+  display:inline-block;vertical-align:1px;
+  margin-left:6px;padding:0 3px;
+  font-size:9px;font-style:normal;line-height:13px;
+  color:rgba(214,228,246,.52);
+  border:1px solid rgba(214,228,246,.22);
+  border-radius:2px;
+  letter-spacing:.5px;
+}
+
+.ghost{
+  flex:0 0 auto;
+  margin-top:var(--s2);
+  display:flex;align-items:center;justify-content:center;gap:var(--s1);
+  min-height:48px;width:100%;
+  border:1px solid var(--hair);
+  border-radius:8px;
+  font-size:16px;
+  transition:transform 180ms var(--ease), border-color 180ms var(--ease);
+}
+.ghost:active{transform:scale(.98);border-color:rgba(200,220,245,.2)}
+.ghost svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.5;fill:none;stroke-linecap:round}
+
+#empty{
+  flex:1 1 auto;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;
+  padding:0 var(--s4);
+}
+#empty.hide{display:none}
+#empty .doodle{
+  width:64px;height:64px;margin-bottom:var(--s4);
+  color:var(--dim);
+  stroke:currentColor;stroke-width:1.5;fill:none;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+#empty .t1{font-size:16px;font-weight:600}
+#empty .t2{margin-top:var(--s2);font-size:14px;color:var(--dim);line-height:1.6}
+#empty .act{
+  margin-top:var(--s5);
+  min-height:48px;padding:0 var(--s5);
+  border:1px solid var(--hair);border-radius:8px;   
+  font-size:16px;
+  transition:transform 180ms var(--ease), border-color 180ms var(--ease);
+}
+#empty .act:active{transform:scale(.97);border-color:rgba(200,220,245,.2)}
+#empty .hint{margin-top:var(--s3);font-size:12px;color:var(--dimmer)}
+
+#import{
+  background:
+    radial-gradient(120% 80% at 50% -10%, var(--c2) 0%, transparent 60%),
+    var(--c3);
+}
+#import .body{
+  flex:1 1 auto;
+  display:flex;flex-direction:column;justify-content:center;
+  gap:var(--s3);
+}
+#import .lead{font-size:16px;line-height:1.6}
+#import .sub{font-size:13px;color:var(--dim);line-height:1.6;margin-bottom:var(--s2)}
+
+#prog{display:none;margin-top:var(--s2)}
+#prog.on{display:block}
+#prog .bar{height:2px;background:var(--hair);border-radius:2px;overflow:hidden}
+#prog .bar i{display:block;height:100%;width:0%;background:var(--ink);transition:width 200ms linear}
+#prog .txt{
+  margin-top:var(--s2);font-size:12px;color:var(--dim);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+#tip{
+  position:fixed;
+  left:0;right:0;
+  bottom:calc(var(--sab) + 76px);
+  text-align:center;
+  font-size:13px;color:var(--dim);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 300ms var(--ease);
+  z-index:30;
+}
+#tip.on{opacity:1}
+
+#lyricAsk{
+  position:fixed;
+  left:0;right:0;
+  bottom:calc(env(safe-area-inset-bottom,0px) + 112px);
+  display:flex;justify-content:center;
+  padding:0 var(--s3);
+  z-index:35;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 260ms var(--ease), transform 260ms var(--ease);
+  transform:translateY(8px);
+}
+#lyricAsk.on{opacity:1;pointer-events:auto;transform:translateY(0)}
+#lyricAsk .la-card{
+  max-width:520px;width:100%;
+  padding:var(--s2) var(--s3);
+  border:1px solid var(--hair);
+  border-radius:12px;
+  background:rgba(14,20,28,.94);
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+#lyricAsk .la-txt{
+  font-size:13px;
+  line-height:1.5;
+  color:var(--dim);
+  text-align:center;
+  
+  word-break:break-word;
+}
+#lyricAsk .la-acts{
+  display:flex;justify-content:center;gap:var(--s2);
+  margin-top:var(--s2);
+}
+#lyricAsk .la-btn{
+  flex:1 1 0;
+  min-height:40px;
+  padding:0 var(--s2);
+  border:1px solid var(--hair);
+  border-radius:8px;
+  background:transparent;
+  color:rgba(232,240,250,.92);
+  font-family:inherit;font-size:14px;
+  -webkit-tap-highlight-color:transparent;
+  transition:background 180ms var(--ease);
+}
+#lyricAsk .la-btn:active{background:rgba(255,255,255,.07)}
+
+#rowMenu{
+  position:fixed;inset:0;z-index:60;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  background:rgba(4,7,11,.62);
+  opacity:0;pointer-events:none;
+  transition:opacity .24s var(--ease);
+}
+
+#wallMenu{
+  position:fixed;inset:0;z-index:60;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  background:rgba(4,7,11,.62);
+  opacity:0;pointer-events:none;
+  transition:opacity .24s var(--ease);
+}
+#wallMenu.on{opacity:1;pointer-events:auto}
+#wallMenu .rm-sheet{
+  display:flex;flex-direction:column;gap:8px;
+  padding:18px clamp(20px,6vw,44px) calc(18px + env(safe-area-inset-bottom,0px));
+  background:rgba(12,18,26,.96);
+  border-top:1px solid rgba(200,222,248,.1);
+  border-radius:20px 20px 0 0;
+  transform:translateY(14px);
+  transition:transform .26s var(--ease);
+}
+#wallMenu.on .rm-sheet{transform:translateY(0)}
+
+#wallMenu .rm-title{
+  font-size:11.5px;color:rgba(236,243,252,.42);
+  padding:8px 4px 2px;
+  letter-spacing:.12em;
+}
+#wallMenu .rm-title:first-child{padding-top:2px}
+
+#rowMenu.on{opacity:1;pointer-events:auto}
+#rowMenu .rm-sheet{
+  display:flex;flex-direction:column;gap:8px;
+  padding:18px clamp(20px,6vw,44px) calc(18px + env(safe-area-inset-bottom,0px));
+  background:rgba(12,18,26,.96);
+  border-top:1px solid rgba(200,222,248,.1);
+  border-radius:20px 20px 0 0;
+  transform:translateY(14px);
+  transition:transform .26s var(--ease);
+}
+#rowMenu.on .rm-sheet{transform:translateY(0)}
+#rowMenu .rm-title{
+  max-width:100%;
+  margin:0 0 6px;
+  font-size:clamp(12.5px,2.9vw,14px);
+  color:rgba(236,243,252,.62);
+  text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  letter-spacing:.02em;
+}
+#rowMenu .rm-btn{
+  width:100%;
+  padding:clamp(14px,2.8vh,18px) 18px;
+  border:0;
+  border-radius:14px;
+  background:rgba(255,255,255,.05);
+  color:rgba(232,240,250,.92);
+  font-family:inherit;font-size:clamp(13px,3vw,14.5px);
+  letter-spacing:.03em;
+  cursor:pointer;
+  transition:background .2s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+#rowMenu .rm-btn:active{background:rgba(255,255,255,.11)}
+#rowMenu .rm-btn.danger{color:rgba(240,150,140,.95)}
+
+#lyrPick{
+  position:fixed;inset:0;z-index:70;
+  display:flex;align-items:flex-end;justify-content:center;
+  background:rgba(3,6,10,.62);
+  opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .24s var(--ease),visibility .24s;
+}
+#lyrPick.on{opacity:1;visibility:visible;pointer-events:auto}
+#lyrPick .lp-sheet{
+  width:100%;max-width:520px;
+  max-height:78vh;
+  display:flex;flex-direction:column;
+  padding:14px clamp(14px,4.5vw,26px) calc(14px + env(safe-area-inset-bottom,0px));
+  background:rgba(12,18,26,.98);
+  border-top:1px solid rgba(200,222,248,.1);
+  border-radius:20px 20px 0 0;
+  transform:translateY(16px);
+  transition:transform .26s var(--ease);
+}
+#lyrPick.on .lp-sheet{transform:translateY(0)}
+#lyrPick .lp-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;
+}
+#lyrPick .lp-hd{
+  font-size:clamp(12.5px,3vw,14px);
+  color:rgba(236,243,252,.72);
+  letter-spacing:.03em;
+}
+#lyrPick .lp-x{
+  width:32px;height:32px;flex:0 0 auto;
+  border:0;border-radius:50%;background:transparent;
+  color:rgba(236,243,252,.5);
+  font-size:19px;line-height:1;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+#lyrPick .lp-x:active{background:rgba(255,255,255,.08)}
+
+#lyrPick .lp-cols,
+#lyrPick .lp-row{
+  display:grid;
+  grid-template-columns:minmax(0,1.7fr) minmax(0,1.1fr) minmax(0,.9fr);
+  gap:8px;
+  align-items:center;
+}
+#lyrPick .lp-cols{
+  padding:0 8px 7px;
+  font-size:10.5px;
+  color:rgba(236,243,252,.3);
+  letter-spacing:.06em;
+  border-bottom:1px solid rgba(200,222,248,.09);
+}
+#lyrPick .lp-body{
+  flex:1 1 auto;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+}
+#lyrPick .lp-body::-webkit-scrollbar{width:0;height:0}
+#lyrPick .lp-row{
+  width:100%;
+  padding:11px 8px;
+  border:0;border-radius:10px;
+  background:transparent;
+  text-align:left;
+  font-family:inherit;
+  color:rgba(232,240,250,.9);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  transition:background .18s ease;
+}
+#lyrPick .lp-row:active{background:rgba(255,255,255,.08)}
+#lyrPick .lp-row.on{background:rgba(200,222,248,.1)}
+#lyrPick .lp-row span{
+  display:block;
+  min-width:0;
+  font-size:12.5px;line-height:1.35;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+#lyrPick .lp-row .lp-c2,
+#lyrPick .lp-row .lp-c3{color:rgba(236,243,252,.44);font-size:11.5px}
+#lyrPick .lp-row .lp-c3{color:rgba(236,243,252,.3)}
+#lyrPick .lp-none{
+  padding:26px 8px;
+  text-align:center;
+  font-size:12.5px;
+  color:rgba(236,243,252,.36);
+  line-height:1.7;
+}
+#lyrPick .lp-foot{
+  flex:0 0 auto;
+  padding-top:8px;
+  font-size:11px;
+  color:rgba(236,243,252,.3);
+  text-align:center;
+  min-height:0;
+}
+
+#mask{
+  position:fixed;inset:0;
+  background:rgba(3,6,10,.55);
+  opacity:0;visibility:hidden;
+  transition:opacity 250ms var(--ease), visibility 250ms;
+  z-index:40;
+}
+#mask.on{opacity:1;visibility:visible}
+
+#set{
+  position:fixed;
+  top:calc(var(--sat) + var(--s4));
+  right:calc(env(safe-area-inset-right,0px) + var(--s2));
+  left:calc(env(safe-area-inset-left,0px) + var(--s2));
+  max-width:360px;
+  margin-left:auto;
+  
+  transform:translateY(-8px) scale(.97);
+  transform-origin:top right;
+  opacity:0;visibility:hidden;
+  transition:opacity 220ms var(--ease), transform 220ms var(--ease), visibility 220ms;
+  background:rgba(14,19,27,.94);
+  border:1px solid var(--hair);
+  border-radius:8px;
+  padding:var(--s2) var(--s3) var(--s3);
+  z-index:41;
+  max-height:calc(100vh - var(--s6) - var(--sat));
+  overflow-y:auto;
+}
+#set.on{opacity:1;visibility:visible;transform:translateY(0) scale(1)}
+
+#set .sh{
+  display:flex;align-items:center;justify-content:space-between;
+  min-height:48px;
+  margin-bottom:var(--s1);
+}
+#set .sh b{font-size:16px;font-weight:600}
+
+#set .shact{display:flex;align-items:center;gap:2px;margin-right:-12px}
+#set .sh .x{
+  width:48px;height:48px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--dim);
+  transition:transform 180ms var(--ease);
+}
+#set .sh .x:active{transform:scale(.95)}
+#set .sh .x svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.5;fill:none;stroke-linecap:round}
+
+.sw{
+  display:flex;align-items:center;justify-content:space-between;gap:var(--s3);
+  min-height:48px;
+  border-top:1px solid var(--hair);
+  padding:var(--s2) 0;
+}
+.sw .lb{min-width:0}
+.sw .lb b{display:block;font-size:15px;font-weight:400;line-height:1.3}
+.sw .lb span{display:block;margin-top:3px;font-size:12px;color:var(--dim);line-height:1.4}
+
+.tg{
+  flex:0 0 auto;
+  width:44px;height:26px;border-radius:13px;
+  background:rgba(200,220,245,.14);
+  position:relative;
+  transition:background 200ms var(--ease);
+}
+.tg::after{
+  content:'';
+  position:absolute;top:3px;left:3px;
+  width:20px;height:20px;border-radius:50%;
+  background:var(--dim);
+  transition:transform 200ms var(--ease), background 200ms var(--ease);
+}
+.tg.on{background:rgba(140,175,220,.42)}
+.tg.on::after{transform:translateX(18px);background:var(--ink)}
+
+.sl{padding:var(--s2) 0 var(--s3);border-top:1px solid var(--hair)}
+.sl .lb b{display:block;font-size:15px;font-weight:400}
+.sl input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:24px;margin-top:var(--s1);
+  background:transparent;
+}
+.sl input[type=range]::-webkit-slider-runnable-track{
+  height:2px;background:var(--hair);border-radius:2px;
+}
+.sl input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:20px;height:20px;border-radius:50%;
+  background:var(--ink);
+  margin-top:-9px;
+}
+
+#set .fact{
+  border-top:1px solid var(--hair);
+  padding-top:var(--s2);
+  font-size:12px;color:var(--dimmer);line-height:1.5;
+}
+
+#player{
+  background:var(--c3);
+  padding:0;              
+}
+#player iframe{
+  width:100%;height:100%;
+  border:0;display:block;
+  background:var(--c3);
+}
+</style>
+</head>
+<body>
+
+<section id="home" class="screen on pad">
+  <div class="top">
+    <h1>停云</h1>
+    <button class="ibtn" id="bSet" type="button" aria-label="设置">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.2 5.2l2.1 2.1M16.7 16.7l2.1 2.1M18.8 5.2l-2.1 2.1M7.3 16.7l-2.1 2.1"/>
+      </svg>
+    </button>
+  </div>
+
+  <button class="primary" id="bGo" type="button">
+    <span class="pi">
+      <svg viewBox="0 0 24 24"><path d="M7 4.5l12 7.5-12 7.5z"/></svg>
+    </span>
+    <span class="pt">
+      <b id="goTitle">开始挂机</b>
+      <span id="goSub">选择一首曲子</span>
+    </span>
+  </button>
+  
+  <div id="listWrap">
+
+    <div class="sect">
+      <span>我的曲目</span>
+      <span id="count">0 首</span>
+    </div>
+    <div class="list" id="rows"></div>
+  </div>
+
+  <div id="empty">
+    <svg class="doodle" viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M14 30c0-6 5-11 11-11 3 0 5.5 1.2 7.3 3.1"/>
+      <path d="M32.3 22.1c1.7-1.9 4.1-3.1 6.9-3.1 5.6 0 10 4.4 10 9.9 0 .9-.1 1.7-.3 2.5"/>
+      <path d="M14 30h34.9"/>
+      <path d="M22 40l0 8"/>
+      <path d="M32 40l0 12"/>
+      <path d="M42 40l0 7"/>
+    </svg>
+    <div class="t1">没有曲目</div>
+    <div class="t2">导入本地音频文件后可在此选择</div>
+    <button class="act" id="bImport1" type="button">选择文件</button>
+    <div class="hint">支持 ncm、mp3、flac</div>
+  </div>
+
+  <button class="ghost" id="bImport2" type="button">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+    导入音乐
+  </button>
+</section>
+
+<section id="player" class="screen slow">
+  <iframe id="frame" title="停云"></iframe>
+</section>
+
+<section id="import" class="screen pad">
+  <div class="top">
+    <h1 style="font-size:17px;font-weight:600;letter-spacing:0">导入音乐</h1>
+    <button class="ibtn" id="bImpClose" type="button" aria-label="返回">
+      <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+
+  <div class="body">
+    <div class="lead">选择你下载的歌曲文件</div>
+    <div class="sub">
+      支持多选。ncm、qmc 自动解密。
+    </div>
+
+    <button class="ghost" id="bPick" type="button" style="margin-top:var(--s1)">
+      <svg viewBox="0 0 24 24"><path d="M4 7h5l2 2h9v10H4z"/></svg>
+      选择音乐文件
+    </button>
+
+    <div id="prog">
+      <div class="bar"><i id="progFill"></i></div>
+      <div class="txt" id="progTxt"></div>
+    </div>
+  </div>
+</section>
+
+<div id="tip"></div>
+
+<div id="lyricAsk">
+  <div class="la-card">
+    <div class="la-txt" id="laTxt"></div>
+    <div class="la-acts">
+      <button class="la-btn" id="laYes" type="button">对的</button>
+      <button class="la-btn" id="laOther" type="button">换一个</button>
+      <button class="la-btn" id="laNo" type="button">不要</button>
+    </div>
+  </div>
+</div>
+
+<div id="rowMenu">
+  <div class="rm-sheet">
+    <div class="rm-title" id="rmTitle"></div>
+    <button class="rm-btn" id="rmLyric" type="button">找歌词</button>
+    <button class="rm-btn" id="rmPickLyric" type="button">自选歌词</button>
+    <button class="rm-btn danger" id="rmDel" type="button">从曲库删除</button>
+    <button class="rm-btn" id="rmCancel" type="button">取消</button>
+  </div>
+</div>
+
+<div id="lyrPick">
+  <div class="lp-sheet">
+    <div class="lp-head">
+      <span class="lp-hd" id="lpHead">选择歌词</span>
+      <button class="lp-x" id="lpClose" type="button" aria-label="关闭">×</button>
+    </div>
+    <div class="lp-cols">
+      <span class="lp-c1">歌名</span>
+      <span class="lp-c2">歌手</span>
+      <span class="lp-c3">专辑</span>
+    </div>
+    <div class="lp-body" id="lpBody"></div>
+    <div class="lp-foot" id="lpFoot"></div>
+  </div>
+</div>
+
+<div id="wallMenu">
+  <div class="rm-sheet">
+    <div class="rm-title">静态壁纸</div>
+    <button class="rm-btn" id="wmImage" type="button">选择图片并裁剪</button>
+    <button class="rm-btn" id="wmImageClear" type="button">清除静态壁纸</button>
+    <button class="rm-btn" id="wmCancel" type="button">取消</button>
+  </div>
+</div>
+
+<div id="mask"></div>
+<div id="set">
+  <div class="sh">
+    <b>设置</b>
+    <div class="shact">
+      
+      <button class="x" id="bWall" type="button" aria-label="选择壁纸">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2"/><circle cx="8.5" cy="10" r="1.6"/><path d="M4 17l5-4.6 3.4 3 3-2.6L20 17"/></svg>
+      </button>
+      <button class="x" id="bSetClose" type="button" aria-label="关闭">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="sw">
+    <div class="lb">
+      <b>后台播放</b>
+      <span>切换到其他应用后继续播放</span>
+    </div>
+    <div class="tg" id="tgBg" role="switch" aria-checked="false"></div>
+  </div>
+
+  <div class="sw">
+    <div class="lb">
+      <b>自动获取歌词</b>
+      <span>从网易云、QQ 音乐获取</span>
+    </div>
+    <div class="tg on" id="tgLyric" role="switch" aria-checked="true"></div>
+  </div>
+
+  <div class="sw">
+    <div class="lb">
+      <b>屏幕常亮</b>
+      <span>保持屏幕常亮</span>
+    </div>
+    <div class="tg on" id="tgAwake" role="switch" aria-checked="true"></div>
+  </div>
+
+  <div class="sl">
+    <div class="lb"><b>壁纸压暗强度</b></div>
+    <input type="range" id="rgDim" min="0" max="100" step="1" value="55"
+           aria-label="壁纸压暗强度">
+  </div>
+
+  <div class="sl">
+    <div class="lb">
+      <b>歌词偏移</b>
+      <span id="rgLyricOffVal">0.0 秒</span>
+    </div>
+    <input type="range" id="rgLyricOff" min="-5000" max="5000" step="100" value="0"
+           aria-label="歌词偏移">
+  </div>
+
+  <div class="fact">视频背景耗电约 10%/小时</div>
+</div>
+
+<input type="file" id="picker" accept="audio/*" multiple hidden>
+
+<script>
+(function () {
+  'use strict';
+
+  var IS_APP = typeof window.TingYun !== 'undefined'
+            && typeof window.TingYun.version === 'function';
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  var cur = 'home';
+
+  var tracks = [];
+
+  var tipTimer = null, tipEl = $('tip');
+  function tip(text, ms) {
+    
+    var ask = $('lyricAsk');
+    if (ask && ask.classList.contains('on')) return;
+
+    tipEl.textContent = text;
+    tipEl.classList.add('on');
+    if (tipTimer) clearTimeout(tipTimer);
+    tipTimer = setTimeout(function () {
+      tipEl.classList.remove('on');
+      tipTimer = null;
+    }, ms || 3000);
+  }
+
+  function showScreen(name) {
+    if (name === cur) return;
+    var prev = $(cur), next = $(name);
+    if (!prev || !next) return;
+
+    prev.classList.remove('on');
+    next.classList.add('on');
+    cur = name;
+
+    if (IS_APP && typeof window.TingYun.setImmersive === 'function') {
+      window.TingYun.setImmersive(name === 'player');
+    }
+
+    if (name === 'player') loadFrame();
+
+    if (prev && prev.id === 'player') {
+      try {
+        if (IS_APP && typeof window.TingYun.pause === 'function') window.TingYun.pause();
+      } catch (e) { }
+      
+      try {
+        if (IS_APP && typeof window.TingYun.ambDisable === 'function') window.TingYun.ambDisable();
+      } catch (e) { }
+      
+      try {
+        var pw = $('frame').contentWindow;
+        if (pw && typeof pw.TingYunLeave === 'function') pw.TingYunLeave();
+      } catch (e) { }
+    }
+
+    if (name === 'home') refreshHome();
+
+    pushSession();
+  }
+
+  function pushSession() {
+    if (!IS_APP) return;
+    if (typeof window.TingYun.saveSession !== 'function') return;
+    var scene = '';
+    try {
+      var w = $('frame').contentWindow;
+      if (w && typeof w.TingYunSceneName === 'function') scene = w.TingYunSceneName() || '';
+    } catch (e) { }
+    var pos = 0;
+    try {
+      if (IS_APP && typeof window.TingYun.position === 'function') pos = window.TingYun.position() || 0;
+    } catch (e) { }
+    try {
+      window.TingYun.saveSession(scene, curIndex, pos, cur === 'player');
+    } catch (e) { }
+  }
+
+  var frameLoaded = false;
+  function loadFrame() {
+    if (frameLoaded) {
+      
+      try {
+        var w = $('frame').contentWindow;
+        if (w && typeof w.TingYunResume === 'function') w.TingYunResume();
+      } catch (e) { }
+      
+      flushToFrame();
+      flushWall();
+      if (pendingDim !== null) syncDim(pendingDim);
+      return;
+    }
+    var f = $('frame');
+    
+    f.addEventListener('load', function () {
+      try {
+        
+        flushToFrame();
+        
+        if (pendingDim !== null) syncDim(pendingDim);
+        flushWall();
+      } catch (e) { }
+    });
+    f.src = './player.html';
+    frameLoaded = true;
+  }
+
+  function refreshHome() {
+    tracks = loadTracks();
+
+    var listWrap = $('listWrap');
+    var empty = $('empty');
+    var goTitle = $('goTitle');
+    var goSub = $('goSub');
+
+    if (tracks.length === 0) {
+      
+      listWrap.style.display = 'none';
+      empty.classList.remove('hide');
+      goTitle.textContent = '进入停云';
+      
+      goSub.textContent = '霭霭停云，濛濛时雨';
+    } else {
+      
+      listWrap.style.display = 'flex';
+      empty.classList.add('hide');
+
+      var first = tracks[0];
+      goTitle.textContent = '开始挂机';
+      
+      var memo = -1;
+      if (IS_APP) {
+        try {
+          var mp = JSON.parse(window.TingYun.getPrefs());
+          if (mp && typeof mp.lastIndex === 'number') memo = mp.lastIndex;
+        } catch (e) { }
+      } else if (typeof lastIndex === 'number') {
+        memo = lastIndex;
+      }
+      var sel = (memo >= 0 && memo < tracks.length) ? tracks[memo] : first;
+      
+      var nm = sel.title || sel.t || '';
+      var ar = sel.artist || sel.a || '';
+      goSub.textContent = ar ? (ar + ' · ' + nm) : nm;
+
+      renderRows();
+    }
+
+    $('count').textContent = tracks.length + ' 首';
+
+    refreshLyricIds();
+    autoRetagPending();
+  }
+
+  var tagTried = {};
+
+  function needsRetag(t) {
+    if (!t || !t.id || !IS_APP) return false;
+    if (tagTried[t.id]) return false;          
+    if (typeof window.TingYun.retagTrack !== 'function') return false;
+
+    if (!t.cover) return true;
+
+    var a = t.artist || '';
+    if (a.length === 0 || a === '未知歌手') return true;
+
+    var ti = t.title || '';
+    if (ti.length === 0) return true;
+    if (ti.indexOf('_') >= 0) return true;
+    return false;
+  }
+
+  function autoRetagPending() {
+    if (!IS_APP) return;
+
+    var i = 0;
+    function step() {
+      
+      var budget = 8;
+      while (i < tracks.length && budget > 0) {
+        var t = tracks[i++];
+        if (!needsRetag(t)) continue;
+        budget--;
+        tagTried[t.id] = true;
+        var changed = false;
+        try {
+          var raw = window.TingYun.retagTrack(t.id);
+          if (raw) changed = true;
+        } catch (e) { }
+        if (changed) {
+          
+          tracks = loadTracks();
+          renderRows();
+          $('count').textContent = tracks.length + ' 首';
+          
+          if (tracks.length) $('goSub').textContent = tracks[0].artist + ' · ' + tracks[0].title;
+          
+          setTimeout(step, 16);
+          return;
+        }
+      }
+      if (i < tracks.length) setTimeout(step, 16);
+    }
+    setTimeout(step, 60);
+  }
+
+  var lyricIds = null;
+
+  function refreshLyricIds() {
+    lyricIds = {};
+    if (!IS_APP || typeof window.TingYun.getLyricIds !== 'function') return;
+    try {
+      var arr = JSON.parse(window.TingYun.getLyricIds() || '[]') || [];
+      for (var i = 0; i < arr.length; i++) lyricIds[arr[i]] = 1;
+    } catch (e) { }
+  }
+
+  function hasLyric(id) {
+    if (!id) return false;
+    if (!lyricIds) refreshLyricIds();
+    return !!lyricIds[id];
+  }
+
+  function renderRows() {
+    var box = $('rows');
+    box.innerHTML = '';
+
+    for (var i = 0; i < tracks.length; i++) {
+      var t = tracks[i];
+      var row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'row' + (i === markIdx ? ' on' : '');
+      row.setAttribute('data-i', String(i));
+
+      if (t.cover) {
+        var img = document.createElement('img');
+        img.className = 'cover';
+        img.src = t.cover;
+        img.alt = '';
+        row.appendChild(img);
+      } else {
+        var ph = document.createElement('div');
+        ph.className = 'cover';
+        row.appendChild(ph);
+      }
+
+      var tx = document.createElement('div');
+      tx.className = 'tx';
+      var b = document.createElement('b');
+      b.textContent = t.title;
+      
+      if (hasLyric(t.id)) {
+        var lk = document.createElement('i');
+        lk.className = 'lyrTag';
+        lk.textContent = '词';
+        b.appendChild(lk);
+      }
+      var sp = document.createElement('span');
+      sp.textContent = t.artist;
+      tx.appendChild(b);
+      tx.appendChild(sp);
+      row.appendChild(tx);
+
+      row.addEventListener('click', (function (idx) {
+        return function () {
+          
+          if (row._lpFired) { row._lpFired = false; return; }
+          markIndex(idx);
+        };
+      })(i));
+
+      (function (idx, item, trackObj) {
+        var timer = null;
+        function start() {
+          item._lpFired = false;
+          clearTimeout(timer);
+          timer = setTimeout(function () {
+            item._lpFired = true;
+            openRowMenu(idx, trackObj);
+          }, 480);
+        }
+        function stop() {
+          if (timer) { clearTimeout(timer); timer = null; }
+        }
+        row.addEventListener('touchstart', start, { passive: true });
+        row.addEventListener('touchend', stop);
+        row.addEventListener('touchmove', stop, { passive: true });
+        row.addEventListener('touchcancel', stop);
+        row.addEventListener('mousedown', start);
+        row.addEventListener('mouseup', stop);
+        row.addEventListener('mouseleave', stop);
+        
+        row.addEventListener('click', function (e) {
+          if (row._lpFired) {
+            e.stopPropagation();
+            e.preventDefault();
+            row._lpFired = false;
+          }
+        }, true);
+      })(i, row, t);
+
+      box.appendChild(row);
+    }
+  }
+
+  var rmIndex = -1, rmTrack = null;
+
+  function openRowMenu(i, t) {
+    rmIndex = i;
+    rmTrack = t;
+    var box = $('rowMenu');
+    if (!box) return;
+    var ti = $('rmTitle');
+    if (ti) ti.textContent = (t && t.title) ? t.title : '未命名';
+    box.classList.add('on');
+    try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) { }
+  }
+
+  function closeRowMenu() {
+    var box = $('rowMenu');
+    if (box) box.classList.remove('on');
+    rmIndex = -1;
+    rmTrack = null;
+  }
+
+  function deleteRowTrack() {
+    var t = rmTrack;
+    var i = rmIndex;
+    closeRowMenu();
+    if (!t) return;
+    if (!IS_APP) { tip('仅 APP 内可删除'); return; }
+    if (!t.id) { tip('这首不能删除'); return; }
+
+    try { window.TingYun.removeTrack(t.id); } catch (e) { }
+    
+    if (i >= 0) {
+      if (markIdx === i) markIdx = -1;
+      else if (markIdx > i) markIdx--;
+      if (curIndex === i) curIndex = -1;
+      else if (curIndex > i) curIndex--;
+    }
+    
+    refreshHome();
+    tip('已删除');
+  }
+
+  var lyricSeq = 0, lyricWait = null, lyricWaitIdx = -1, lyricTimer = null;
+  
+  var manualFind = false;
+
+  function findLyric() {
+    var t = rmTrack;
+    var i = rmIndex;
+    closeRowMenu();
+    if (!t) return;
+    if (!IS_APP) { tip('仅 APP 内可取歌词'); return; }
+
+    var seq = ++lyricSeq;
+    lyricWait = t;
+    lyricWaitIdx = i;
+    manualFind = true;   
+    tip('正在查找歌词…');
+
+    clearTimeout(lyricTimer);
+    lyricTimer = setTimeout(function () {
+      if (lyricWait === t) {
+        lyricWait = null;
+        lyricWaitIdx = -1;
+        tip('没有找到匹配的歌词');
+      }
+    }, 8000);
+
+    try {
+      
+      if (typeof window.TingYun.getLyricAsync === 'function') {
+        window.TingYun.getLyricAsync(seq, t.id || '', t.title || '', t.artist || '');
+      } else {
+        syncFallback();
+      }
+    } catch (e) {
+      syncFallback();
+    }
+
+    function syncFallback() {
+      
+      try {
+        var raw = window.TingYun.getLyric(t.id || '', t.title || '', t.artist || '');
+        clearTimeout(lyricTimer);
+        var tt = lyricWait;
+        var tw = lyricWaitIdx;
+        lyricWait = null;
+        lyricWaitIdx = -1;
+        applyFoundLyric(tt, raw, tw);
+      } catch (e2) {
+        clearTimeout(lyricTimer);
+        lyricWait = null;
+        lyricWaitIdx = -1;
+        tip('没有找到匹配的歌词');
+      }
+    }
+  }
+
+  function applyFoundLyric(t, raw, wasIndex) {
+    var data = null;
+    try { data = raw ? JSON.parse(raw) : null; } catch (e) { data = null; }
+    if (!data || (data.code !== 0 && data.code !== 2) || !data.lines || !data.lines.length) {
+      tip('没有找到匹配的歌词');
+      return;
+    }
+
+    try {
+      if (t.id) {
+        var lrc = [];
+        for (var q = 0; q < data.lines.length; q++) {
+          var ln = data.lines[q];
+          if (!ln || typeof ln[0] !== 'number') continue;
+          var ms = ln[0], mm = Math.floor(ms / 60000), ss = (ms % 60000) / 1000;
+          var tag = '[' + (mm < 10 ? '0' : '') + mm + ':' + (ss < 10 ? '0' : '') + ss.toFixed(2) + ']';
+          lrc.push(tag + (ln[1] || ''));
+        }
+        if (lrc.length) window.TingYun.saveLyric(t.id, lrc.join('\n'));
+      }
+    } catch (e) { }
+
+    if (wasIndex >= 0 && wasIndex === curIndex) {
+      pushLyric(data.lines, t && (t.id || t.src));
+    }
+
+    if (manualFind) tip('已匹配：' + (data.match || t.title || ''));
+
+    refreshLyricIds();
+    renderRows();
+  }
+  
+  function handleLyricResult(seq, raw) {
+    clearTimeout(lyricTimer);
+    var t = lyricWait;
+    var wi = lyricWaitIdx;
+    lyricWait = null;
+    lyricWaitIdx = -1;
+    if (!t || seq !== lyricSeq) { manualFind = false; return; }
+    applyFoundLyric(t, raw, wi);
+    
+    manualFind = false;
+  }
+
+  (function bindRowMenu() {
+    var bL = $('rmLyric'), bD = $('rmDel'), bC = $('rmCancel'), box = $('rowMenu');
+    if (bL) bL.addEventListener('click', function (e) { e.stopPropagation(); findLyric(); });
+    if (bD) bD.addEventListener('click', function (e) { e.stopPropagation(); deleteRowTrack(); });
+    if (bC) bC.addEventListener('click', function (e) { e.stopPropagation(); closeRowMenu(); });
+    if (box) box.addEventListener('click', function (e) {
+      if (e.target === box) closeRowMenu();
+    });
+    
+    var bP = $('rmPickLyric');
+    if (bP) bP.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var t = rmTrack;
+      closeRowMenu();
+      openLyricPick(t);
+    });
+  })();
+
+  var lpTrack = null;      
+  var lpSeq = 0;           
+  var lpTimer = null;
+
+  function openLyricPick(t) {
+    if (!t) return;
+    if (!IS_APP) { tip('仅 APP 内可搜索歌词'); return; }
+    if (typeof window.TingYun.searchLyricCandidates !== 'function') {
+      tip('当前版本不支持自选歌词');
+      return;
+    }
+    lpTrack = t;
+    var box = $('lyrPick');
+    if (!box) return;
+    var hd = $('lpHead');
+    if (hd) hd.textContent = '选择歌词 · ' + (t.title || '未命名');
+    var body = $('lpBody');
+    if (body) {
+      body.innerHTML = '';
+      var ld = document.createElement('div');
+      ld.className = 'lp-none';
+      ld.textContent = '正在搜索…';
+      body.appendChild(ld);
+    }
+    var ft = $('lpFoot');
+    if (ft) ft.textContent = '';
+    box.classList.add('on');
+
+    var seq = ++lpSeq;
+    try {
+      window.TingYun.searchLyricCandidates(seq, t.title || '', t.artist || '');
+    } catch (e) { }
+
+    clearTimeout(lpTimer);
+    lpTimer = setTimeout(function () {
+      if (seq !== lpSeq) return;
+      renderLyricPick(null, true);
+    }, 12000);
+  }
+
+  function closeLyricPick() {
+    var box = $('lyrPick');
+    if (box) box.classList.remove('on');
+    lpTrack = null;
+    clearTimeout(lpTimer);
+  }
+
+  function renderLyricPick(list, timedOut) {
+    var body = $('lpBody');
+    if (!body) return;
+    body.innerHTML = '';
+
+    if (!list || !list.length) {
+      var ed = document.createElement('div');
+      ed.className = 'lp-none';
+      ed.textContent = timedOut
+        ? '搜索超时，检查网络后重试'
+        : '没有搜到，可以换个歌名再试';
+      body.appendChild(ed);
+      var f0 = $('lpFoot');
+      if (f0) f0.textContent = '';
+      return;
+    }
+
+    for (var i = 0; i < list.length; i++) {
+      (function (c) {
+        var row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'lp-row';
+
+        var c1 = document.createElement('span');
+        c1.className = 'lp-c1';
+        c1.textContent = c.title || '—';
+
+        var c2 = document.createElement('span');
+        c2.className = 'lp-c2';
+        c2.textContent = c.artist || '—';
+
+        var c3 = document.createElement('span');
+        c3.className = 'lp-c3';
+        
+        c3.textContent = c.album || (c.source === 'qqmusic' ? 'QQ音乐' : '网易云');
+
+        row.appendChild(c1);
+        row.appendChild(c2);
+        row.appendChild(c3);
+
+        row.addEventListener('click', function (e) {
+          e.stopPropagation();
+          applyLyricPick(c, row);
+        });
+        body.appendChild(row);
+      })(list[i]);
+    }
+
+    var ft = $('lpFoot');
+    if (ft) ft.textContent = '共 ' + list.length + ' 个结果，点一行应用';
+  }
+
+  function applyLyricPick(c, row) {
+    if (!c || !lpTrack) return;
+    if (row) row.classList.add('on');
+    var ft = $('lpFoot');
+    if (ft) ft.textContent = '正在取歌词…';
+
+    var t = lpTrack;
+    
+    var seq = ++lyricSeq;
+    lyricWait = t;
+    lyricWaitIdx = (t.id && tracks[markIdx] && tracks[markIdx].id === t.id) ? markIdx : curIndex;
+    manualFind = true;
+
+    try {
+      window.TingYun.useLyricCandidate(seq, t.id || '', c.source, c.id);
+    } catch (e) {
+      if (ft) ft.textContent = '取歌词失败';
+      return;
+    }
+    
+    clearTimeout(lpTimer);
+    lpTimer = setTimeout(function () {
+      if (seq !== lyricSeq) return;
+      lyricWait = null;
+      lyricWaitIdx = -1;
+      if (ft) ft.textContent = '取歌词超时，换一个试试';
+    }, 12000);
+  }
+
+  (function bindLyricPick() {
+    var b = $('lyrPick'), x = $('lpClose');
+    if (x) x.addEventListener('click', function (e) { e.stopPropagation(); closeLyricPick(); });
+    if (b) b.addEventListener('click', function (e) {
+      if (e.target === b) closeLyricPick();
+    });
+  })();
+
+  var curIndex = -1;
+  
+  var markIdx = -1;
+
+  function markIndex(i) {
+    var t = tracks[i];
+    if (!t) return;
+    
+    markIdx = i;
+    
+    fetchLyric(t);
+    refreshHome();
+  }
+
+  function selectIndex(i) {
+    var t = tracks[i];
+    if (!t) return;
+    curIndex = i;
+    loadFrame();
+    
+    pendingTrack = t;
+    pushTrack();
+    
+    fetchLyric(t);
+    showScreen('player');
+  }
+
+  function playIndex(i) {
+    var t = tracks[i];
+    if (!t) return;
+    curIndex = i;
+    
+    if (IS_APP) {
+      try {
+        window.TingYun.play(t.uri, t.title);
+      } catch (e) {
+        tip('无法播放此文件');
+      }
+    }
+    loadFrame();
+    pendingTrack = t;
+    pushTrack();
+
+    fetchLyric(t);
+    showScreen('player');
+  }
+
+  function fetchLyric(t) {
+    if (!IS_APP || !t) return;
+    
+    manualFind = false;
+
+    if (typeof window.TingYun.getLyricAsync === 'function') {
+      var seq = ++lyricSeq;
+      lyricWait = t;
+      lyricWaitIdx = curIndex;
+      try {
+        window.TingYun.getLyricAsync(seq, t.id || '', t.title || '', t.artist || '');
+      } catch (e) {
+        
+        lyricWait = null;
+        lyricWaitIdx = -1;
+      }
+      return;
+    }
+
+    if (typeof window.TingYun.getLyric !== 'function') return;
+    var raw;
+    try {
+      raw = window.TingYun.getLyric(t.id || '', t.title || '', t.artist || '');
+    } catch (e) {
+      return;   
+    }
+    if (!raw) return;
+
+    var data;
+    try { data = JSON.parse(raw); } catch (e) { return; }
+    if (!data || !data.lines || data.lines.length === 0) return;  
+
+    if (data.code === 2 && data.match) {
+      askLyric(t, data);
+      return;
+    }
+    applyLyric(t, data.lines);
+  }
+
+  function applyLyric(t, lines) {
+    pushLyric(lines, t && (t.id || t.src));
+  }
+
+  function askLyric(t, data) {
+    var box = $('lyricAsk');
+    
+    if (!box) { applyLyric(t, data.lines); return; }
+
+    var txt = $('laTxt');
+    if (txt) txt.textContent = '已匹配歌词：' + (data.match || t.title || '');
+
+    function toLrc(lines) {
+      var out = [];
+      for (var q = 0; q < lines.length; q++) {
+        var ln = lines[q];
+        if (!ln || typeof ln[0] !== 'number') continue;
+        var ms = ln[0], mm = Math.floor(ms / 60000), ss = (ms % 60000) / 1000;
+        var tag = '[' + (mm < 10 ? '0' : '') + mm + ':' + (ss < 10 ? '0' : '') + ss.toFixed(2) + ']';
+        out.push(tag + (ln[1] || ''));
+      }
+      return out.join('\n');
+    }
+
+    function close() { box.classList.remove('on'); }
+
+    function bind(id, fn) {
+      var b = $(id);
+      if (!b) return;
+      
+      b.onclick = function (e) {
+        e.stopPropagation();
+        close();
+        fn();
+      };
+    }
+
+    bind('laYes', function () {
+      
+      try {
+        var lrc = toLrc(data.lines);
+        if (lrc && typeof window.TingYun.saveLyric === 'function') {
+          window.TingYun.saveLyric(t.id || '', lrc);
+        }
+      } catch (e) { }
+      applyLyric(t, data.lines);
+    });
+
+    bind('laOther', function () {
+      
+      applyLyric(t, []);
+    });
+
+    bind('laNo', function () {
+      
+      try {
+        if (typeof window.TingYun.rejectLyric === 'function') {
+          window.TingYun.rejectLyric(t.id || '');
+        }
+      } catch (e) { }
+      applyLyric(t, []);
+    });
+
+    box.classList.add('on');
+    
+    clearTimeout(askLyricTimer);
+    askLyricTimer = setTimeout(close, 12000);
+  }
+  var askLyricTimer = null;
+
+  var pendingTrack = null;
+
+  window.TingYunRestore = function (scene, index, posMs, onPlayer) {
+    try {
+      
+      if (typeof index === 'number' && index >= 0) {
+        tracks = tracks && tracks.length ? tracks : loadTracks();
+        if (index < tracks.length) {
+          curIndex = index;
+          
+          markIdx = index;
+          pendingTrack = tracks[index] || null;
+          if (pendingTrack) fetchLyric(pendingTrack);
+        } else {
+          
+          curIndex = -1;
+          markIdx = -1;
+          pendingTrack = null;
+          onPlayer = false;
+        }
+      }
+
+      restoreArgs = { scene: scene || '', index: curIndex, pos: posMs || 0, onPlayer: !!onPlayer };
+
+      if (onPlayer) {
+        loadFrame();
+        showScreen('player');
+      } else {
+        showScreen('home');
+      }
+      restoreToFrame();
+    } catch (e) { }
+    return true;
+  };
+
+  var restoreArgs = null;
+
+  function restoreToFrame() {
+    if (!restoreArgs) return;
+    var w;
+    try { w = $('frame').contentWindow; } catch (e) { return; }
+    if (!w || typeof w.TingYunRestore !== 'function') return;
+
+    var a = restoreArgs;
+    restoreArgs = null;
+    try {
+      
+      if (pendingTrack && typeof w.TingYunSetTrack === 'function') {
+        w.TingYunSetTrack(pendingTrack);
+        pendingTrack = null;
+      }
+      w.TingYunRestore(a.scene, typeof a.index === 'number' ? a.index : -1, a.pos, a.onPlayer);
+      
+      if (pendingLyric) pushLyric(pendingLyric, pendingLyricOwner);
+    } catch (e) { }
+  }
+
+  function pushTrack() {
+    if (!pendingTrack) return;
+    var w;
+    try { w = $('frame').contentWindow; } catch (e) { return; }
+    if (w && typeof w.TingYunSetTrack === 'function') {
+      try { w.TingYunSetTrack(pendingTrack); } catch (e) { }
+      pendingTrack = null;
+    }
+    
+  }
+
+  var pendingLyric = null;
+  var pendingLyricId = '';   
+  var pendingLyricOwner = ''; 
+
+  function pushLyric(lines, ownerId) {
+    if (!lines || !lines.length) return;
+    
+    pendingLyricId = ownerId || '';
+    var w;
+    try { w = $('frame').contentWindow; } catch (e) { return; }
+    if (w && typeof w.TingYunSetLyric === 'function') {
+      try { w.TingYunSetLyric(lines, pendingLyricId); } catch (e) { }
+      pendingLyric = null;
+    } else {
+      
+      pendingLyric = lines;
+      pendingLyricOwner = pendingLyricId;
+    }
+  }
+
+  function flushToFrame() {
+    if (pendingTrack) pushTrack();
+    
+    if (pendingLyric) pushLyric(pendingLyric, pendingLyricOwner);
+    restoreToFrame();
+  }
+
+  function loadTracks() {
+    if (!IS_APP) return [];
+    try {
+      var raw = window.TingYun.getTracks();
+      var arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function openSet() {
+    $('mask').classList.add('on');
+    $('set').classList.add('on');
+  }
+  function closeSet() {
+    $('mask').classList.remove('on');
+    $('set').classList.remove('on');
+  }
+
+  function openWallMenu() {
+    var box = $('wallMenu');
+    if (box) box.classList.add('on');
+  }
+  function closeWallMenu() {
+    var box = $('wallMenu');
+    if (box) box.classList.remove('on');
+  }
+
+  var wallState = { image: false };
+  function readWallState() {
+    if (!IS_APP) return wallState;
+    try {
+      var p = JSON.parse(window.TingYun.getPrefs());
+      wallState.image = p.wallImage === true;
+    } catch (e) { }
+    return wallState;
+  }
+
+  (function bindWallMenu() {
+    var b = $('bWall');
+    if (b) b.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (!IS_APP) { tip('仅 APP 内可更换壁纸'); return; }
+      readWallState();
+      openWallMenu();
+    });
+    var box = $('wallMenu');
+
+    var wIn = $('wmImage');
+    if (wIn) wIn.addEventListener('click', function () {
+      closeWallMenu();
+      try { window.TingYun.pickWallpaper(); } catch (e) { tip('无法打开选择器'); }
+    });
+    var wIc = $('wmImageClear');
+    if (wIc) wIc.addEventListener('click', function () {
+      closeWallMenu();
+      try { window.TingYun.clearWallpaper(); } catch (e) { }
+      tip('已清除壁纸');
+    });
+
+    var wCn = $('wmCancel');
+    if (wCn) wCn.addEventListener('click', closeWallMenu);
+    if (box) box.addEventListener('click', function (e) {
+      if (e.target === box) closeWallMenu();
+    });
+  })();
+
+  window.TingYunPushWallState = function () {
+    try {
+      readWallState();
+      var w = $('frame').contentWindow;
+      if (!w) return true;
+      
+      if (typeof w.TingYunRefreshWall === 'function') {
+        w.TingYunRefreshWall();
+      }
+    } catch (e) { }
+    return true;
+  };
+
+  function bindSwitch(el, key, initial) {
+    var on = !!initial;
+    el.classList.toggle('on', on);
+    el.setAttribute('aria-checked', on ? 'true' : 'false');
+
+    el.addEventListener('click', function () {
+      on = !on;
+      el.classList.toggle('on', on);
+      el.setAttribute('aria-checked', on ? 'true' : 'false');
+      if (IS_APP) {
+        try { window.TingYun.setPref(key, on ? 'true' : 'false'); } catch (e) { }
+      }
+    });
+  }
+
+  function initSettings() {
+    var p = {};
+    if (IS_APP) {
+      try { p = JSON.parse(window.TingYun.getPrefs()); } catch (e) { p = {}; }
+    }
+
+    bindSwitch($('tgBg'), 'bgPlay', p.bgPlay === true);
+    bindSwitch($('tgLyric'), 'autoLyric', p.autoLyric !== false);
+    bindSwitch($('tgAwake'), 'keepAwake', p.keepAwake !== false);
+
+    var rg = $('rgDim');
+    var dim = typeof p.dim === 'number' ? p.dim : 55;
+    rg.value = String(dim);
+    
+    syncDim(parseInt(dim, 10));
+
+    rg.addEventListener('input', function () {
+      if (IS_APP) {
+        try { window.TingYun.setPref('dim', rg.value); } catch (e) { }
+      }
+      syncDim(parseInt(rg.value, 10));
+    });
+
+    var rgL = $('rgLyricOff');
+    var off = typeof p.lyricOffset === 'number' ? p.lyricOffset : 0;
+    rgL.value = String(off);
+    syncLyricOffset(parseInt(off, 10));
+
+    rgL.addEventListener('input', function () {
+      var v = parseInt(rgL.value, 10);
+      if (isNaN(v)) v = 0;
+      if (IS_APP) {
+        try { window.TingYun.setPref('lyricOffset', String(v)); } catch (e) { }
+      }
+      syncLyricOffset(v);
+    });
+  }
+
+  var pendingLyricOff = 0;
+  function syncLyricOffset(ms) {
+    if (isNaN(ms)) ms = 0;
+    pendingLyricOff = ms;
+    var lab = $('rgLyricOffVal');
+    if (lab) lab.textContent = (ms / 1000).toFixed(1) + ' 秒';
+    try {
+      var w = $('frame').contentWindow;
+      if (w && typeof w.TingYunSetLyricOffset === 'function') {
+        w.TingYunSetLyricOffset(ms);
+      }
+    } catch (e) { }
+  }
+
+  function syncDim(v) {
+    if (isNaN(v)) return;
+    pendingDim = v;
+    try {
+      var w = $('frame').contentWindow;
+      if (w && typeof w.TingYunSetDim === 'function') {
+        w.TingYunSetDim(v);
+        pendingDim = null;
+      }
+    } catch (e) { }
+  }
+
+  var pendingDim = null;
+  window.TingYunSetWallpaper = function (imgUrl) {
+    pendingWall = { url: imgUrl || '', video: false };
+    flushWall();
+    return true;
+  };
+  window.TingYunSetWallpaperVideo = function (videoUrl) {
+    pendingWall = { url: videoUrl || '', video: true };
+    flushWall();
+    return true;
+  };
+
+  var pendingWall = null;
+  function flushWall() {
+    if (!pendingWall) return;
+    var w;
+    try { w = $('frame').contentWindow; } catch (e) { return; }
+    if (!w) return;
+    var p = pendingWall;
+    var fn = p.video ? 'TingYunSetWallpaperVideo' : 'TingYunSetWallpaper';
+    if (typeof w[fn] !== 'function') return;
+    pendingWall = null;
+    try { w[fn](p.url); } catch (e) { }
+  }
+
+  function openImport() { showScreen('import'); }
+
+  function pickFiles() {
+    
+    if (IS_APP && window.TingYun && typeof window.TingYun.pickFiles === 'function') {
+      try { window.TingYun.pickFiles(); return; } catch (e) { }
+    }
+    
+    $('picker').click();
+  }
+
+  $('picker').addEventListener('change', function () {
+    var files = this.files;
+    if (!files || files.length === 0) return;
+
+    var progTimer = setTimeout(function () { $('prog').classList.add('on'); }, 1000);
+    var total = files.length, done = 0;
+
+    function step() {
+      done++;
+      $('progFill').style.width = Math.round(done / total * 100) + '%';
+      $('progTxt').textContent = '正在导入 ' + done + '/' + total;
+      if (done >= total) {
+        clearTimeout(progTimer);
+        setTimeout(function () {
+          $('prog').classList.remove('on');
+          $('progFill').style.width = '0%';
+        }, 600);
+        
+        tip('已导入 ' + total + ' 首');
+        refreshHome();
+        showScreen('home');
+      }
+    }
+
+    for (var i = 0; i < total; i++) {
+      (function (file) {
+        
+        if (IS_APP && typeof window.TingYun.importFile === 'function') {
+          try {
+            var fr = new FileReader();
+            fr.onload = function () {
+              try {
+                var s = String(fr.result || '');
+                var comma = s.indexOf(',');
+                var b64 = comma >= 0 ? s.substring(comma + 1) : s;
+                window.TingYun.importFile(file.name, b64);
+              } catch (e) { }
+              step();
+            };
+            fr.onerror = function () { step(); };
+            fr.readAsDataURL(file);
+            return;
+          } catch (e) { }
+        }
+        setTimeout(step, 120 + i * 40);
+      })(files[i]);
+    }
+  });
+
+  window.TingYunNative = {
+    onState: function (playing) {
+      try {
+        var w = $('frame').contentWindow;
+        if (w && typeof w.TingYunNative === 'object' && w.TingYunNative.onState) {
+          w.TingYunNative.onState(playing);
+        }
+      } catch (e) { }
+    },
+    onProgress: function (pos, dur) {
+      try {
+        var w = $('frame').contentWindow;
+        if (w && typeof w.TingYunNative === 'object' && w.TingYunNative.onProgress) {
+          w.TingYunNative.onProgress(pos, dur);
+        }
+      } catch (e) { }
+    },
+    onEnded: function () {
+      try {
+        var w = $('frame').contentWindow;
+        if (w && typeof w.TingYunNative === 'object' && w.TingYunNative.onEnded) {
+          w.TingYunNative.onEnded();
+        }
+      } catch (e) { }
+    },
+    onError: function () {
+      
+      tip('无法播放此文件');
+    },
+    
+    onTip: function (text) {
+      tip(String(text || ''));
+    },
+    
+    onLyric: function (seq, raw) {
+      handleLyricResult(seq, raw);
+      
+      try {
+        var lp = $('lyrPick');
+        if (lp && lp.classList.contains('on')) closeLyricPick();
+      } catch (e) { }
+    },
+    
+    onLyricCandidates: function (seq, raw) {
+      try {
+        var n = parseInt(seq, 10);
+        if (isNaN(n) || n !== lpSeq) return;
+        clearTimeout(lpTimer);
+        var list = [];
+        try { list = JSON.parse(raw || '[]') || []; } catch (e) { list = []; }
+        renderLyricPick(list, false);
+      } catch (e2) { }
+    },
+    
+    onImported: function (n) {
+      try {
+        var count = parseInt(n, 10);
+        if (isNaN(count)) count = 0;
+        refreshHome();
+        if (count > 0) showScreen('home');
+      } catch (e) { }
+    }
+  };
+
+  window.TingYunResume = function () {
+    try {
+      var w = $('frame').contentWindow;
+      if (w && typeof w.TingYunResume === 'function') w.TingYunResume();
+    } catch (e) { }
+  };
+
+  window.TingYunRotate = function () {
+    try {
+      var w = $('frame').contentWindow;
+      if (w && typeof w.TingYunRotate === 'function') w.TingYunRotate();
+    } catch (e) { }
+  };
+
+  window.TingYunStep = function (dir) {
+    var n = tracks.length;
+    if (n === 0) return;
+    var i = curIndex < 0 ? 0 : curIndex + (dir > 0 ? 1 : -1);
+    
+    i = ((i % n) + n) % n;
+    playIndex(i);
+  };
+
+  window.TingYunBack = function () {
+    if (cur === 'player' || cur === 'import') {
+      showScreen('home');
+      return true;
+    }
+    return false;
+  };
+
+  $('bGo').addEventListener('click', function () {
+    
+    if (tracks.length > 0) {
+      selectIndex(curIndex >= 0 ? curIndex : 0);
+    } else {
+      loadFrame();
+      showScreen('player');
+    }
+  });
+
+  $('bSet').addEventListener('click', openSet);
+  $('bSetClose').addEventListener('click', closeSet);
+  $('mask').addEventListener('click', closeSet);
+
+  $('bImport1').addEventListener('click', openImport);
+  $('bImport2').addEventListener('click', openImport);
+  $('bImpClose').addEventListener('click', function () { showScreen('home'); });
+  $('bPick').addEventListener('click', pickFiles);
+
+  try {
+    if (IS_APP && typeof window.TingYun.reduceMotion === 'function'
+        && window.TingYun.reduceMotion() === true) {
+      document.documentElement.classList.add('no-anim');
+    }
+  } catch (e) { }
+
+  refreshHome();
+  initSettings();
+
+  $('frame').addEventListener('load', function () {
+    try {
+      var w = $('frame').contentWindow;
+      if (w && typeof w.TingYunSetDim === 'function') {
+        w.TingYunSetDim(parseInt($('rgDim').value, 10));
+      }
+      
+      if (w && typeof w.TingYunSetLyricOffset === 'function') {
+        w.TingYunSetLyricOffset(pendingLyricOff);
+      }
+      if (w && typeof w.TingYunResume === 'function') w.TingYunResume();
+    } catch (e) { }
+    
+    pushTrack();
+  });
+
+})();
+</script>
+</body>
+</html>

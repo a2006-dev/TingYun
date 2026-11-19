@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  停云 · 主题
+
+  严格遵循大纲：
+    10.1 图标与启动 —— windowBackground 设为页面底色 #070a0f。
+         默认是白底，点图标到首帧之间会闪白，夜里很刺眼。
+    4.6  全屏与系统栏 —— 这里不写死全屏。首页显示系统栏、挂机页隐藏，
+         由 MainActivity 在运行时按当前 screen 切换。
+    9.2  状态栏图标：深色背景 → 浅色图标，由 edge-to-edge 运行时设置。
+-->
+<resources>
+
+    <style name="Theme.TingYun" parent="Theme.AppCompat.NoActionBar">
+        <!-- 10.1：消除启动闪白 -->
+        <item name="android:windowBackground">@color/ty_splash</item>
+
+        <!-- 窗口本身透明交给 edge-to-edge，系统栏由代码控制 -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+
+        <!--
+          9.2：系统默认会往导航栏盖一层半透明遮罩，破坏黑底一致性，
+          底部会出现一条比页面亮一档的灰带。必须关掉。
+        -->
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:enforceStatusBarContrast">false</item>
+
+        <!-- 页面自己处理窗口 inset，Activity 不做 decor fit -->
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
+
+</resources>

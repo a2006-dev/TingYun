@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  停云 · AndroidManifest
+
+  严格遵循《停云-开发大纲》：
+    5.1 原则：首次打开不弹任何框
+    5.2 权限清单 —— 只留 INTERNET / FOREGROUND_SERVICE /
+                     FOREGROUND_SERVICE_MEDIA_PLAYBACK，POST_NOTIFICATIONS 按需
+    4.6 全屏与系统栏 —— 首页显示系统栏，挂机页隐藏，由运行时控制，
+                        不在 Manifest 里写死全屏主题
+    10.1 图标与启动 —— windowBackground = #070a0f，消除启动闪白
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 5.2 唯一无条件需要的权限：歌词接口 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+      4.5 / 5.2：后台播放是设置里的开关，默认关。
+      这里声明的是「开关打开后要用的能力」，不是声明就要跑 ——
+      权限声明本身不会弹框（都属普通/前台权限，非运行时权限）。
+
+      FOREGROUND_SERVICE 与 FOREGROUND_SERVICE_MEDIA_PLAYBACK 看起来当前无人调用，
+      但 merged manifest 里确实存在一个注入的前台服务（见下方 DATA_SYNC 注释），
+      targetSdk 34 下前台服务必须有对应类型权限，所以三条一起保留，
+      代价只是多两行声明，能避免将来加 Service 时的 SecurityException。
+    -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
+    <!--
+      9.2：保持常亮用 FLAG_KEEP_SCREEN_ON（代码层），
+      不用 WakeLock —— WakeLock 忘了 release 会一直耗电。
+      所以这里不声明 WAKE_LOCK。
+    -->
+
+    <!--
+      9.12：通知权限被撤销后的降级。这是唯一需要运行时申请的权限，
+      且只在用户主动打开「后台播放」开关时才申请（4.5）。
+      不放进首启流程 —— 5.1 要求首启零弹框。
+    -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!--
+      9.2：保持常亮用 FLAG_KEEP_SCREEN_ON（代码层），
+      不用 WakeLock —— WakeLock 忘了 release 会一直耗电。
+      所以这里不声明 WAKE_LOCK。
+    -->
+
+    <!--
+      AndroidIDE 自带的日志转发服务以 dataSync 类型起前台服务，
+      targetSdk >= 34 时必须声明该权限，否则启动即 SecurityException。
+      这是构建工具注入的依赖带来的，与 APP 自身功能无关。
+    -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+
+    <application
+        android:allowBackup="true"
+        android:hardwareAccelerated="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.TingYun"
+        android:usesCleartextTraffic="false">
+
+        <!--
+          三屏都在 WebView 里（4.7：同一个 HTML，class 切换，不是 loadUrl），
+          所以只有一个 Activity。
+
+          configChanges 覆盖转屏不重建（9.4 旋转的五个坑）：
+          重建会导致 canvas 重来一遍、视频重新解码，观感断裂。
+        -->
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:resizeableActivity="true"
+            android:theme="@style/Theme.TingYun">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 6.4 静态壁纸裁剪页。无标题栏、无 Material 主题，
+             用 @style/Theme.TingYun 保证和主界面同一个底色，避免闪一下白屏。
+             单独一个 Activity 而不是弹窗：裁剪要全屏，而且转屏/切后台要能独立存活。 -->
+        <activity
+            android:name=".wall.WallCropActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode|density|fontScale"
+            android:exported="false"
+            android:theme="@style/Theme.TingYun" />
+    </application>
+
+</manifest>

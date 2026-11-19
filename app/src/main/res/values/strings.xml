@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 1.1 它是什么：一个挂机页。名字来自陶渊明「霭霭停云，濛濛时雨」。 -->
+    <string name="app_name">停云</string>
+
+    <!-- 无障碍：图标按钮的说明文字，不显示给普通用户 -->
+    <string name="cd_settings">设置</string>
+    <string name="cd_back">返回</string>
+</resources>

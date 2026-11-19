@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  MainActivity 布局
+
+  严格遵循大纲：
+    9.6 首帧白屏 —— 设置 setBackgroundColor + 于 onPageStarted 前显示一层纯色 View。
+        这里用 FrameLayout 叠两层：底层 WebView，顶层纯色 View（cover）。
+        页面首帧绘制完成后再把 cover 淡出，避免看到 WebView 自己的白底。
+    3.4 三屏全部由 WebView 承载，所以布局里只有一个 WebView，没有原生控件。
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/ty_bg"
+    android:keepScreenOn="true">
+
+    <WebView
+        android:id="@+id/web"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/ty_bg" />
+
+    <!--
+      遮罩：页面 onPageFinished + 首帧绘制完成前挡住 WebView。
+      颜色与页面底色一致，所以"揭幕"是无感的，不会闪白。
+    -->
+    <View
+        android:id="@+id/cover"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/ty_bg" />
+
+</FrameLayout>

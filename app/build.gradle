@@ -1,0 +1,103 @@
+plugins {
+    id 'com.android.application'
+}
+
+/*
+ * 停云 · APP 外壳
+ *
+ * 严格遵循《停云-开发大纲》：
+ *   7.1 依赖取舍 —— 只引必须的三个：media3-exoplayer / media3-session / webkit
+ *                   不引 Room、不引 DataStore、不引 Coil、不引 Compose
+ *   7.2 WebViewAssetLoader —— 用 androidx.webkit，assets 映射成 https 域名
+ *   9.6 大素材放 assets/，不放 res/（res 会被 aapt 压缩重命名，mp4 可能损坏）
+ *
+ * 工程结构见大纲第八章。
+ */
+android {
+    namespace 'com.tingyun.app'
+    /*
+      10.11：targetSdk 35（edge-to-edge 文档强制要求）。
+      compileSdk 必须 >= targetSdk，否则 AGP 直接报错。
+      minSdk 26：覆盖够广，且省掉一大堆旧版兼容分支。
+
+      【暂时退回 34 的原因】
+      构建机上的 android-35 平台是 Gradle 自动装的，只下了元数据、
+      没下 android.jar，导致 processDebugResources 报
+      "failed to load include path .../android-35/android.jar"。
+      这不是代码问题，是 SDK 组件残缺。
+      等 SDK Manager 里重装好 Android SDK Platform 35，
+      把下面两处 34 改回 35 即可，其余代码无需改动
+      （本项目没有用 enableEdgeToEdge()，全屏是手动 addFlags 实现的，
+       34 与 35 在这套代码上行为一致）。
+    */
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.tingyun.app"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file("${System.getProperty('user.home')}/.android/debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
+        release {
+            storeFile file("heart-release.p12")
+            storePassword "Xinji2026!Heart"
+            keyAlias "heart"
+            keyPassword "Xinji2026!Heart"
+        }
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    /*
+     * 9.6：大素材放 assets/，且必须禁止 aapt 压缩。
+     * mp4/ogg 本身已是压缩格式，再压会损坏且拖慢构建。
+     */
+    aaptOptions {
+        noCompress 'mp4', 'ogg', 'webm'
+    }
+}
+
+dependencies {
+    /*
+     * 7.1：必须引的只有这三个。其余一律不引。
+     * Room / DataStore / Coil / Compose 全部砍掉（理由见大纲表格）。
+     */
+    implementation 'androidx.media3:media3-exoplayer:1.1.1'
+    implementation 'androidx.media3:media3-session:1.1.1'
+    implementation 'androidx.webkit:webkit:1.6.1'
+
+    /*
+     * 下面两个是上面三者的传递依赖里已隐含的，显式声明保证
+     * WebViewAssetLoader / Activity 符号编译期可见，避免版本漂移。
+     */
+    implementation 'androidx.core:core:1.9.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+}
